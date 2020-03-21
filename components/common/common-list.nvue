@@ -1,0 +1,75 @@
+<template recyclable>
+	<div class="common-list" @click="openDetail">
+		<image class="common-list-image" :src="item.titlepic"></image>
+		<text class="common-list-title">{{item.title}}</text>
+		<text class="common-list-desc">{{item.desc}}</text>
+		<div class="common-list-price">
+			<text class="common-list-pprice-before">￥</text>
+			<text class="common-list-pprice">{{item.pprice}}</text>
+			<text class="common-list-oprice">￥{{item.oprice}}</text>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		props:{
+			item:Object,
+			index:Number
+		},
+		methods:{
+			openDetail(){
+				uni.navigateTo({
+					url: '../../pages/detail/detail'
+				});
+			}
+		}
+	}
+</script>
+
+<style scoped>
+.common-list{
+	width: 375px;
+	border-width:2.5px;
+	border-color: #FFFFFF;
+}
+.common-list-image{
+	width: 370px;
+	height: 370px;
+}
+.common-list-title{
+	lines: 1;
+	font-size: 30px;
+	margin-top: 20px;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+.common-list-desc{
+	lines: 1;
+	color: #BBBBBB;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+.common-list-price{
+	flex-direction: row;
+	align-items: flex-end;
+	padding-left: 15px;
+	padding-right: 15px;
+	margin-bottom: 20px;
+}
+.common-list-pprice-before{
+	font-size: 20px;
+	color: #DE5F0E;
+	align-self: flex-start;
+}
+.common-list-pprice{
+	color: #DE5F0E;
+	font-size: 32px;
+}
+.common-list-oprice{
+	color: #BBBBBB;
+	margin-left: 15px;
+}
+</style>

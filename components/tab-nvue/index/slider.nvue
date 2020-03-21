@@ -1,0 +1,40 @@
+<template recyclable>
+	<div>
+		<!-- 图片轮播 -->
+		<slider class="slider" interval="3000" auto-play="true">
+		  <div class="frame" v-for="(item,index) in banners" :key="index">
+			<image class="image" resize="cover" :src="item.src"></image>
+		  </div>
+		  <indicator class="indicator"></indicator>
+		</slider>
+	</div>
+</template>
+
+<script>
+	export default {
+		props:{
+			banners:Array
+		}
+	}
+</script>
+
+<style scoped>
+ /* 轮播图 */
+ .slider ,.image,.frame{
+    width: 750px;
+    height: 350px;
+  }
+  .frame {
+    position: relative;
+  }
+  .indicator {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: 60px;
+    background-color: rgba(0, 0, 0, 0);
+	width: 150px;
+    item-color: rgba(96, 98, 115, 0.6);
+    item-selected-color: #FFFFFF;
+  }
+</style>

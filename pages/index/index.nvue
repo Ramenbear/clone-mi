@@ -1,0 +1,401 @@
+<template>
+	<div>
+		<uni-tabs @change="changeTab" :index="tabIndex">
+			<!-- 横向滚动导航 -->
+			<uni-tab-bar drag 
+			:tab-bars="tabBars" 
+			:tab-index="tabIndex">
+			</uni-tab-bar>
+			
+			<uni-tab-content>
+				<list class="list" :showScrollbar="false" 
+				loadmoreoffset="10" 
+				v-for="(tab,index1) in newsitems" :key="index1">
+				
+					<!-- 下拉刷新 -->
+					<refresh class="refresh" 
+					@refresh="onrefresh" 
+					@pullingdown="onpullingdown" 
+					:display="tab.refreshing ? 'show' : 'hide'">
+						<text class="refresh-text">{{tab.refreshText}}</text>
+					</refresh>
+					<!-- 首页样式 -->
+					<template v-if="tabBars[index1].template === 'index'">
+						<cell>
+							<!-- 轮播图 -->
+							<zcm-slider :banners="tab.data.banners"></zcm-slider>
+							<!-- 首页图标 -->
+							<zcm-index-nav :indexnav="tab.data.indexNav"></zcm-index-nav>
+						</cell>
+						<cell v-for="(v,i) in tab.data.list" :key="i">
+							<!-- 三图广告 -->
+							<template v-if="v.type === 'ThreeAdverts'">
+								<zcm-three-adverts :resdata="v.data"></zcm-three-adverts>
+							</template>
+							<!-- 通用列表 -->
+							<template v-if="v.type === 'list'">
+								<div class="common-list w-100">
+									<zcm-common-list v-for="(item,index) in v.data" 
+									:key="index"
+									:item="item"
+									:index="index">
+									</zcm-common-list>
+								</div>
+							</template>
+							<template v-if="v.type === 'OneAdvert'">
+								<!-- 大图广告 -->
+								<zcm-one-advert :item="v.data"></zcm-one-advert>
+							</template>
+						</cell>
+					</template>
+					<!-- 专题页样式 -->
+					<template v-if="tabBars[index1].template === 'special'">
+						<cell>
+							<!-- 轮播图 -->
+							<zcm-slider :banners="tab.data.banners"></zcm-slider>
+							<!-- 首页图标 -->
+							<zcm-index-nav :indexnav="tab.data.indexNav"></zcm-index-nav>
+						</cell>
+						<cell>
+							<div class="p-2 border-top border-bottom font-lg w-100">
+								<text class="font-md font-weight text-dark">热卖爆品</text>
+							</div>
+							<!-- 通用列表 -->
+							<block v-for="(v,i) in tab.data.list" :key="i">
+							<template v-if="v.type === 'list'">
+								<div class="common-list w-100">
+									<zcm-common-list v-for="(item,index) in v.data" 
+									:key="index"
+									:item="item"
+									:index="index">
+									</zcm-common-list>
+								</div>
+							</template>
+							</block>
+						</cell>
+					</template>
+		
+					<!-- 上拉加载 -->
+					<!-- <cell class="loadmore">
+						<text class="loadmore-text">{{tab.loadingText}}</text>
+					</cell> -->
+					
+					<loading class="loadmore" @loading="loadMore(index1)" :display="tab.loadingMore">
+						<text class="loadmore-text">{{tab.loadingText}}</text>
+					</loading>
+
+				</list>
+			</uni-tab-content>
+		</uni-tabs>
+	</div>
+</template>
+
+<script>
+	import uniTabContent from '@/components/tab-nvue/tabContent.nvue'
+	import uniTabBar from '@/components/tab-nvue/tabBar.nvue'
+	import uniTabs from '@/components/tab-nvue/tabs.nvue';
+	// 首页组件
+	import zcmSlider from '@/components/tab-nvue/index/slider.nvue';
+	import zcmIndexNav from '@/components/tab-nvue/index/index-nav.nvue';
+	import zcmCommonList from "@/components/common/common-list.nvue";
+	import zcmThreeAdverts from "../../components/tab-nvue/index/three-adverts.nvue";
+	import zcmOneAdvert from "../../components/tab-nvue/index/one-advert.nvue"
+	import $Tool from "../../common/lib/tool.js"
+	const dom = weex.requireModule('dom')
+	export default {
+		components: {
+			uniTabContent,
+			uniTabBar,
+			uniTabs,
+			zcmSlider,
+			zcmIndexNav,
+			zcmCommonList,
+			zcmThreeAdverts,
+			zcmOneAdvert
+		},
+		data() {
+			return {
+				tabIndex: 0,
+				newsitems: [],
+				tabBars: [{
+					name: '推荐',
+					id: 'index',
+					template:"index"
+				}, {
+					name: '体育',
+					id: 'tiyu',
+					template:"special"
+				}, {
+					name: '热点',
+					id: 'redian',
+					template:"special"
+				}, {
+					name: '财经',
+					id: 'caijing',
+					template:"special"
+				}, {
+					name: '娱乐',
+					id: 'yule',
+					template:"special"
+				}, {
+					name: '军事',
+					id: 'junshi',
+					template:"special"
+				}, {
+					name: '历史',
+					id: 'lishi',
+					template:"special"
+				}, {
+					name: '本地',
+					id: 'bendi',
+					template:"special"
+				}]
+			}
+		},
+		created() {
+			uni.onNavigationBarSearchInputClicked((e) => {
+				console.log("监听到原生标题栏按钮点击事件");
+				uni.navigateTo({
+					url: '../search/search',
+				});
+			})
+			setTimeout(() => {
+				this.newsitems = this.randomfn();
+			}, 150)
+		},
+		methods: {
+			loadMore(e) {
+				if (this.newsitems[e].loadingMore === 'show' ||  this.newsitems[e].loadingText === '没有更多了' || this.newsitems[e].loadingText === '加载更多...') return;
+				this.newsitems[e].loadingText = '加载更多...';
+				this.newsitems[e].loadingMore = 'show';
+				setTimeout(()=>{
+					this.getMore(e);
+				},1000)
+			},
+			// 获取数据
+			getMore(e){
+				if (this.newsitems[e].data.list.length > 30) {
+					console.log('...')
+					this.newsitems[e].loadingText = '没有更多了';
+					return this.newsitems[e].loadingMore = 'hide';
+				}
+				this.newsitems[e].data.list.push({   
+					type:"list",// 通用列表
+					data:[
+						{
+							titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+							title:"米家空调",
+							desc:"1.5匹支流变频",
+							pprice:2199,
+							oprice:2699
+						},
+						{
+							titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+							title:"米家空调",
+							desc:"1.5匹支流变频",
+							pprice:2199,
+							oprice:2699
+						}
+					]
+				});
+				this.newsitems[e].loadingText = '上拉加载更多';
+				return this.newsitems[e].loadingMore = 'hide';
+			},
+			async changeTab(e) {
+				this.tabIndex = e.index;
+			},
+			randomfn() {
+				let ary = [];
+				for (let i = 0, length = this.tabBars.length; i < length; i++) {
+					let aryItem = {
+						refreshing: false,
+						refreshText: "下拉可以刷新",
+						loadingText: "上拉加载更多",
+						loadingMore:'hide',
+						data: {
+							list:[]
+						}
+					};
+					if (this.tabBars[i].template === 'index') {
+						aryItem.data.banners = [
+							{ src: '../../static/images/demo/demo4.jpg'},
+							{ src: '../../static/images/demo/demo8.jpg'}
+						];
+						aryItem.data.indexNav = [
+							{ src:"../../static/indexnav/1.png", name:"新品分类" },
+							{ src:"../../static/indexnav/2.gif", name:"小米众筹" },
+							{ src:"../../static/indexnav/3.gif", name:"以旧换新" },
+							{ src:"../../static/indexnav/4.gif", name:"1分拼团" },
+							{ src:"../../static/indexnav/5.gif", name:"超值特卖" },
+							{ src:"../../static/indexnav/6.gif", name:"小米秒杀" },
+							{ src:"../../static/indexnav/7.gif", name:"真心想要" },
+							{ src:"../../static/indexnav/8.gif", name:"电视热卖" },
+							{ src:"../../static/indexnav/9.gif", name:"家电热卖" },
+							{ src:"../../static/indexnav/10.gif", name:"米粉卡" }
+						];
+						aryItem.data.list = [
+							{
+								// 三屏广告
+								type:"ThreeAdverts",
+								data:[
+									{ src:"../../static/images/demo/demo1.jpg" },
+									{ src:"../../static/images/demo/demo2.jpg" },
+									{ src:"../../static/images/demo/demo3.jpg" },
+								]
+							},
+							{
+								// 大图广告
+								type:"OneAdvert",
+								data:{
+									name:"每日精选",
+									src:"../../static/images/demo/demo4.jpg"
+								}
+							},
+							{   
+								type:"list",// 通用列表
+								data:[
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									}
+								]
+							}
+						];
+					}
+					if (this.tabBars[i].template === 'special') {
+						aryItem.data.banners = [
+							{ src: '../../static/images/demo/demo4.jpg'},
+							{ src: '../../static/images/demo/demo8.jpg'}
+						];
+						aryItem.data.indexNav = [
+							{ src:"../../static/indexnav/1.png", name:"新品分类" },
+							{ src:"../../static/indexnav/2.gif", name:"小米众筹" },
+							{ src:"../../static/indexnav/3.gif", name:"以旧换新" },
+							{ src:"../../static/indexnav/4.gif", name:"1分拼团" },
+							{ src:"../../static/indexnav/5.gif", name:"超值特卖" },
+						];
+						aryItem.data.list = [
+							{   
+								type:"list",// 通用列表
+								data:[
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									},
+									{
+										titlepic:"../../static/images/demo/list/"+$Tool.rnd(1,6)+".jpg",
+										title:"米家空调",
+										desc:"1.5匹支流变频",
+										pprice:2199,
+										oprice:2699
+									}
+								]
+							}
+						];
+					}
+					ary.push(aryItem);
+				}
+				return ary;
+			},
+			// 下拉刷新
+			onrefresh(event) {
+				// 记录当前索引
+				let index = this.tabIndex;
+				let obj = this.newsitems[index];
+				obj.refreshText = "正在刷新...";
+				obj.refreshing = true;
+				setTimeout(() => {
+					console.log("刷新结束")
+					obj.refreshing = false
+				}, 2000)
+			},
+			onpullingdown(event) {
+				// 记录当前索引
+				let index = this.tabIndex;
+				let obj = this.newsitems[index];
+				if (obj.refreshing) {
+					return;
+				}
+				if (Math.abs(event.pullingDistance) > Math.abs(event.viewHeight)) {
+					obj.refreshText = "释放立即刷新";
+				} else {
+					obj.refreshText = "下拉可以刷新";
+				}
+			}
+		}
+	}
+</script>
+<style src="@/common/zcm-main-nvue.css"></style>
+<style src="@/common/nvue-common.css"></style>
+<style>
+	
+</style>

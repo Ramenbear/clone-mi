@@ -1,0 +1,31 @@
+<template>
+	<div class="row py-1 bg-light w-100">
+		<div class="col-6 ">
+			<image class="w-50 pr threeadverts-l" 
+			:src="resdata[0].src"></image>
+		</div>
+		<div class="col-6 j-sb">
+			<image class="w-50 threeadverts-r" 
+			:src="resdata[1].src"></image>
+			<image class="w-50 threeadverts-r"
+			:src="resdata[2].src"></image>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		props:{
+			resdata:Array
+		}
+	}
+</script>
+<style src="@/common/zcm-main-nvue.css"></style>
+<style scoped>
+	.threeadverts-l{
+		height: 530px;
+	}
+	.threeadverts-r{
+		height: 262px;
+	}
+</style>

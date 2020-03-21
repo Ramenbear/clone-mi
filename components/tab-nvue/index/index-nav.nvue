@@ -1,0 +1,45 @@
+<template recyclable>
+	<div class="flex-row flex-wrap pb-3 index-nav w-100">
+		<div class="j-center a-center mt-3 index-nav-item"  
+		v-for="(item,index) in indexnav" 
+		:key="index"
+		@click="open(item)">
+			<image class="index-nav-image" 
+			:src="item.src"></image>
+			<text class="mt-1 text-muted index-nav-text">{{item.name}}</text>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		props:{
+			// 首页图标
+			indexnav:Array,
+		},
+		methods:{
+			open(item){
+				uni.navigateTo({
+					url: '/pages/new-list/new-list',
+				});
+			}
+		}
+	}
+</script>
+<style src="@/common/zcm-main-nvue.css"></style>
+<style scoped>
+/* 首页分类 */
+.index-nav{
+ 	  padding-left: 25px;
+ }
+ .index-nav-item{
+ 	  width: 140px;
+ }
+ .index-nav-image{
+ 	  width: 58px;
+ 	  height: 58px;
+ }
+ .index-nav-text{
+ 	  font-size: 20px;
+ } 
+</style>
